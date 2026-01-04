@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonuslar | 07 BET</title>
+    <style>
+        :root { --main: #1e3a5a; --green: #85b527; --white: #ffffff; }
+        body { font-family: 'Roboto', sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 80px; }
+        header { background: var(--main); color: white; padding: 20px; text-align: center; font-weight: 900; font-size: 20px; }
+        
+        .bonus-container { padding: 15px; }
+        .bonus-card { 
+            background: var(--white); border-radius: 15px; overflow: hidden; 
+            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            border-left: 6px solid var(--green);
+        }
+        .bonus-img { width: 100%; height: 150px; background: var(--main); display: flex; align-items: center; justify-content: center; color: var(--green); font-size: 40px; font-weight: 900; }
+        .bonus-content { padding: 15px; }
+        .bonus-content h3 { margin: 0; color: var(--main); }
+        .bonus-content p { font-size: 13px; color: #666; line-height: 1.5; }
+        .btn-claim { 
+            background: var(--green); color: white; border: none; width: 100%; 
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+
+        /* Alt Navigasyon */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; height: 70px; border-top: 1px solid #ddd; z-index: 9999; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #777; font-size: 11px; font-weight: bold; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<header>🎁 PROMOSYONLAR</header>
+
+<div class="bonus-container">
+    <div class="bonus-card">
+        <div class="bonus-img">%200</div>
+        <div class="bonus-content">
+            <h3>İlk Yatırım Bonusu</h3>
+            <p>07 BET'e yapacağınız ilk yatırımda tam %200 nakit iade kazanın. Minimum 100 TL yatırım için geçerlidir.</p>
+            <button class="btn-claim" onclick="window.claimBonus('Hoşgeldin Bonusu')">TALEP ET</button>
+        </div>
+    </div>
+
+    <div class="bonus-card" style="border-left-color: #e74c3c;">
+        <div class="bonus-img">%30</div>
+        <div class="bonus-content">
+            <h3>Anlık Kayıp Bonusu</h3>
+            <p>Spor veya Slot alanındaki günlük kayıplarınızın %30'unu anında geri alın. Çevrim şartı yoktur!</p>
+            <button class="btn-claim" style="background:#e74c3c" onclick="window.claimBonus('Kayıp Bonusu')">TALEP ET</button>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">🏆<br>Spor</a>
+    <a href="slot.html" class="nav-item">🎰<br>Slot</a>
+    <a href="deposit.html" class="nav-item">💳<br>Yatır</a>
+    <a href="bonus.html" class="nav-item" style="color:var(--main)">🎁<br>Bonus</a>
+    <a href="profile.html" class="nav-item">👤<br>Profil</a>
+</nav>
+
+<script type="module">
+    import { db, ref, push } from "./firebase-handler.js";
+    window.claimBonus = async (bonusType) => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if(!user) return alert("Lütfen önce giriş yapın!");
+
+        await push(ref(db, 'bonusTalepleri'), {
+            userId: user.userId,
+            bonus: bonusType,
+            durum: "Beklemede",
+            tarih: new Date().toLocaleString()
+        });
+        alert(bonusType + " talebiniz admin paneline iletildi!");
+    };
+</script>
+</body>
+</html>
