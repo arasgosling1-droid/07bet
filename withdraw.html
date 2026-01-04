@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Para Çek | 07 BET</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f9; padding: 20px; }
+        .card { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn-draw { background: #e74c3c; color: #fff; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>Para Çekme Talebi</h2>
+    <p>Bakiyenizi banka hesabınıza çekmek için formu doldurun.</p>
+    <input type="number" id="w-amt" placeholder="Çekilecek Tutar">
+    <input type="text" id="w-iban" placeholder="TR00 0000...">
+    <input type="text" id="w-name" placeholder="Hesap Sahibi Ad Soyad">
+    <button class="btn-draw" onclick="window.sendWithdraw()">PARA ÇEKME TALEBİ OLUŞTUR</button>
+</div>
+
+<script type="module">
+    import { db, ref, push, get, set } from "./firebase-handler.js";
+    window.sendWithdraw = async () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const amt = document.getElementById('w-amt').value;
+        const iban = document.getElementById('w-iban').value;
+        const name = document.getElementById('w-name').value;
+
+        const bRef = ref(db, 'kayitlar/' + user.firebaseKey + '/balance');
+        const snap = await get(bRef);
+        if(snap.val() < amt) return alert("Yetersiz Bakiye!");
+
+        await set(bRef, snap.val() - parseFloat(amt));
+        await push(ref(db, 'cekimTalepleri'), {
+            userId: user.userId, miktar: amt, iban: iban, adSoyad: name, durum: "Beklemede"
+        });
+        alert("Talep Alındı. En kısa sürede hesabınıza yansıyacaktır.");
+        location.href = "index.html";
+    };
+</script>
+</body>
+</html>
