@@ -1,4 +1,4 @@
-// firebase-handler.js - Sistemin Veri Merkezi
+// firebase-handler.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getDatabase, 
@@ -11,20 +11,21 @@ import {
     remove 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Bu bilgiler Firebase Console > Project Settings > General kısmındaki bilgilerle eşleşmelidir.
+// Senin özel Firebase bilgilerin
 const firebaseConfig = {
-    apiKey: "AIzaSy-SENIN-API-KEYIN", // Burayı kendi keyinle değiştir
-    authDomain: "1xbet-navy.firebaseapp.com",
-    databaseURL: "https://1xbet-navy-default-rtdb.firebaseio.com",
-    projectId: "1xbet-navy",
-    storageBucket: "1xbet-navy.appspot.com",
-    messagingSenderId: "GONDERICI-ID-KODUN", // Burayı kendi ID'nle değiştir
-    appId: "APP-ID-KODUN" // Burayı kendi ID'nle değiştir
+  apiKey: "AIzaSyC_An7yZsY2E70w94SoXHnnNK37bncOq5o",
+  authDomain: "xbet-5e9b2.firebaseapp.com",
+  databaseURL: "https://xbet-5e9b2-default-rtdb.firebaseio.com", // Bu satırı ekledim, veri tabanı için şart!
+  projectId: "xbet-5e9b2",
+  storageBucket: "xbet-5e9b2.firebasestorage.app",
+  messagingSenderId: "109325889532",
+  appId: "1:109325889532:web:29fa29604f5c033bef4c79",
+  measurementId: "G-NEJ6BEMQMC"
 };
 
-// Firebase'i Başlat
+// Firebase'i ve Veri Tabanını Başlat
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Tüm fonksiyonları diğer sayfalarda (index, profile, admin) kullanabilmek için ihraç ediyoruz.
+// Fonksiyonları dışa aktar ki index.html ve diğerleri kullanabilsin
 export { db, ref, set, push, onValue, get, update, remove };
