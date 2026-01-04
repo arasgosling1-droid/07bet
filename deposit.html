@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Para Yatır | 07 BET</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .iban-box { background: #eee; padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; }
+        .copy-btn { background: #1e3a5a; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-send { background: #85b527; color: #fff; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Havale / EFT İle Yatırım</h2>
+    <p>Lütfen aşağıdaki İBAN hesabına yatırım yaptıktan sonra bildirim gönderiniz.</p>
+    
+    <div class="iban-box">
+        <div><small>Alıcı:</small><br><b>Ramazan Özkan</b></div>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('Ramazan Özkan'); alert('Kopyalandı')">Kopyala</button>
+    </div>
+
+    <div class="iban-box">
+        <div><small>İBAN:</small><br><b>TR10 0001 2001 2260 0001 1532 30</b></div>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('TR100001200122600001153230'); alert('Kopyalandı')">Kopyala</button>
+    </div>
+
+    <input type="number" id="amt" placeholder="Yatırılan Miktar (TL)">
+    <input type="text" id="name" placeholder="Adınız Soyadınız">
+    <button class="btn-send" onclick="sendDep()">YATIRIM BİLDİRİMİ GÖNDER</button>
+</div>
+
+<script type="module">
+    import { db, ref, push } from "./firebase-handler.js";
+    window.sendDep = async () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const amt = document.getElementById('amt').value;
+        const name = document.getElementById('name').value;
+        if(!amt || !name) return alert("Eksik bilgi!");
+
+        await push(ref(db, 'odemeBildirimleri'), {
+            userId: user.userId, userFirebaseKey: user.firebaseKey,
+            miktar: parseFloat(amt), adSoyad: name, durum: "Beklemede"
+        });
+        alert("Bildirim Alındı. Admin onayından sonra bakiye eklenecektir.");
+        location.href = "index.html";
+    }
+</script>
+</body>
+</html>
