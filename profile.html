@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim | 07 BET</title>
+    <style>
+        :root { --main: #1e3a5a; --green: #85b527; --white: #fff; }
+        body { font-family: 'Roboto', sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 80px; }
+        
+        .user-card { background: var(--main); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; }
+        .user-card h1 { margin: 10px 0; font-size: 24px; color: var(--green); }
+        .user-card p { margin: 0; opacity: 0.8; font-size: 14px; }
+
+        .stats { display: flex; gap: 10px; padding: 15px; margin-top: -20px; }
+        .stat-item { flex: 1; background: var(--white); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .stat-item b { display: block; font-size: 18px; color: var(--main); }
+        .stat-item span { font-size: 11px; color: #999; text-transform: uppercase; }
+
+        .history-title { padding: 15px; font-weight: 900; color: var(--main); }
+        .coupon-card { background: var(--white); margin: 0 15px 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .coupon-header { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
+        .status-pending { color: #f39c12; font-weight: bold; }
+        
+        .btn-logout { background: #e74c3c; color: white; border: none; padding: 12px; width: 90%; margin: 20px 5%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; height: 70px; border-top: 1px solid #ddd; z-index: 9999; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #777; font-size: 11px; font-weight: bold; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="user-card">
+    <p>Hoş Geldin,</p>
+    <h1 id="u-id">Giriş Yapılmadı</h1>
+    <p>07 BET VIP Üyesi</p>
+</div>
+
+<div class="stats">
+    <div class="stat-item"><b id="u-balance">0.00</b><span>Bakiye</span></div>
+    <div class="stat-item"><b id="u-coupons">0</b><span>Kuponlarım</span></div>
+</div>
+
+<div class="history-title">🕒 SON BAHİSLERİM</div>
+<div id="coupon-list">
+    </div>
+
+<button class="btn-logout" onclick="window.logout()">GÜVENLİ ÇIKIŞ YAP</button>
+
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">🏆<br>Spor</a>
+    <a href="slot.html" class="nav-item">🎰<br>Slot</a>
+    <a href="deposit.html" class="nav-item">💳<br>Yatır</a>
+    <a href="bonus.html" class="nav-item">🎁<br>Bonus</a>
+    <a href="profile.html" class="nav-item" style="color:var(--main)">👤<br>Profil</a>
+</nav>
+
+<script type="module">
+    import { db, ref, onValue, query, orderByChild, equalTo } from "./firebase-handler.js";
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if(!user) {
+        alert("Lütfen giriş yapın!");
+        location.href = "index.html";
+    }
+
+    // Kullanıcı Bilgilerini Çek
+    onValue(ref(db, 'kayitlar/' + user.firebaseKey), (snap) => {
+        const data = snap.val();
+        document.getElementById('u-id').innerText = data.userId;
+        document.getElementById('u-balance').innerText = data.balance.toLocaleString() + " TL";
+    });
+
+    // Kuponları Listele
+    onValue(ref(db, 'aktifKuponlar'), (snap) => {
+        const list = document.getElementById('coupon-list');
+        list.innerHTML = "";
+        let count = 0;
+        snap.forEach((child) => {
+            const c = child.val();
+            if(c.userId === user.userId) {
+                count++;
+                list.innerHTML += `
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <span>📅 ${c.tarih || 'Bugün'}</span>
+                            <span class="status-pending">${c.status || 'Beklemede'}</span>
+                        </div>
+                        <div style="font-weight:bold; font-size:14px;">${c.match}</div>
+                        <div style="font-size:13px; color:#666; margin-top:5px;">Seçim: ${c.pick} | Oran: ${c.rate}</div>
+                        <div style="margin-top:10px; font-size:12px; color:var(--main);">Miktar: <b>${c.stake} TL</b></div>
+                    </div>
+                `;
+            }
+        });
+        document.getElementById('u-coupons').innerText = count;
+    });
+
+    window.logout = () => {
+        localStorage.removeItem('currentUser');
+        location.href = "index.html";
+    };
+</script>
+</body>
+</html>
