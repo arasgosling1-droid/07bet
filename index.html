@@ -1,0 +1,86 @@
+<div id="modal-register" class="modal-overlay">
+    <div class="modal-window" style="max-height: 90vh; overflow-y: auto; margin-top: 20px;">
+        <h2 style="color:var(--main)">07 BET Kayıt Formu</h2>
+        <input type="text" id="reg-name" placeholder="Adınız">
+        <input type="text" id="reg-surname" placeholder="Soyadınız">
+        <input type="number" id="reg-tc" placeholder="TC Kimlik No">
+        <input type="date" id="reg-birth" placeholder="Doğum Tarihi">
+        <input type="tel" id="reg-phone" placeholder="Telefon Numaranız">
+        <input type="password" id="reg-pass" placeholder="Şifreniz">
+        
+        <div style="font-size: 11px; text-align: left; margin: 10px 0; color: #666;">
+            <input type="checkbox" id="reg-contract" style="width: auto;"> 
+            <label for="reg-contract">18 yaşından büyüğüm ve kullanıcı sözleşmesini okudum, onaylıyorum.</label>
+        </div>
+
+        <button class="btn-action" style="width:100%; padding:15px;" onclick="window.process_full_register()">KAYIT OL</button>
+        <p onclick="window.ui_modal_toggle('modal-register', false)" style="margin-top:15px; cursor:pointer; color:#999;">İptal</p>
+    </div>
+</div>
+
+<script type="module">
+    import { db, ref, set, push, onValue, get } from "./firebase-handler.js";
+
+    // MODAL AÇMA/KAPAMA
+    window.ui_modal_toggle = (id, state) => {
+        document.getElementById(id).style.display = state ? 'flex' : 'none';
+    };
+
+    // PROFESYONEL KAYIT FONKSİYONU
+    window.process_full_register = async () => {
+        const name = document.getElementById('reg-name').value;
+        const surname = document.getElementById('reg-surname').value;
+        const tc = document.getElementById('reg-tc').value;
+        const birth = document.getElementById('reg-birth').value;
+        const phone = document.getElementById('reg-phone').value;
+        const pass = document.getElementById('reg-pass').value;
+        const contract = document.getElementById('reg-contract').checked;
+
+        // Geçerlilik Kontrolleri
+        if(!name || !surname || !tc || !birth || !phone || !pass) {
+            return alert("Lütfen tüm alanları doldurunuz!");
+        }
+        if(!contract) {
+            return alert("Lütfen kullanıcı sözleşmesini onaylayın.");
+        }
+        if(tc.length !== 11) {
+            return alert("Geçerli bir TC Kimlik numarası giriniz.");
+        }
+
+        // Kullanıcıya özel rastgele bir ID oluştur (Örn: 07-44231)
+        const customUserId = "07-" + Math.floor(10000 + Math.random() * 90000);
+
+        const newUser = {
+            userId: customUserId,
+            name: name,
+            surname: surname,
+            tcNo: tc,
+            birthDate: birth,
+            phone: phone,
+            password: pass,
+            balance: 100, // Hoşgeldin Bonusu
+            status: "Aktif",
+            regDate: new Date().toLocaleString('tr-TR')
+        };
+
+        try {
+            const uRef = push(ref(db, 'kayitlar'));
+            await set(uRef, newUser);
+            
+            // Oturumu Aç
+            localStorage.setItem('currentUser', JSON.stringify({ 
+                userId: customUserId, 
+                firebaseKey: uRef.key,
+                fullName: name + " " + surname 
+            }));
+
+            alert("KAYIT BAŞARILI!\nKullanıcı Numaranız: " + customUserId + "\nLütfen bu numarayı not edin.");
+            location.reload();
+        } catch (error) {
+            alert("Hata oluştu: " + error.message);
+        }
+    };
+    
+    // Mevcut buton işlevini güncelle
+    window.core_reg = () => window.ui_modal_toggle('modal-register', true);
+</script>
