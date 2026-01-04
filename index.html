@@ -1,86 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>07 BET | Profesyonel Bahis ve Slot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --main: #1e3a5a; --dark: #0f2235; --green: #85b527; --gray: #f4f7f9; --white: #fff; --red: #e74c3c; }
+        body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--gray); padding-bottom: 80px; overflow-x: hidden; }
+        
+        /* Header & Logo */
+        header { 
+            background: linear-gradient(135deg, var(--main) 0%, var(--dark) 100%); 
+            height: 65px; display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 15px; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .logo { font-weight: 900; font-size: 26px; color: var(--white); font-style: italic; text-decoration: none; }
+        .logo span { color: var(--green); }
+        .balance-area { background: rgba(0,0,0,0.5); color: var(--green); padding: 8px 15px; border-radius: 30px; font-weight: 900; display: none; border: 1px solid var(--green); }
+        .btn-reg { background: var(--green); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* Banner */
+        .hero { background: var(--dark); margin: 15px; padding: 20px; border-radius: 15px; color: white; border-bottom: 4px solid var(--green); }
+
+        /* Match Cards */
+        .section-title { padding: 15px; font-weight: 900; color: var(--main); font-size: 16px; border-left: 5px solid var(--green); margin: 10px 0; }
+        .match-card { background: var(--white); margin: 0 12px 12px; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .match-top { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 10px; }
+        .match-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .team { display: flex; flex-direction: column; align-items: center; width: 40%; text-align: center; }
+        .team img { width: 35px; height: 35px; margin-bottom: 5px; }
+        .team b { font-size: 13px; color: var(--dark); }
+        .score { font-size: 20px; font-weight: 900; color: var(--red); }
+
+        .odds-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .odd-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 8px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .odd-box:active { background: #e8f5e9; transform: scale(0.95); }
+        .odd-box span { display: block; font-size: 10px; color: #999; }
+        .odd-box b { color: var(--green); font-size: 15px; }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center; padding: 20px; box-sizing: border-box; }
+        .modal-window { background:#fff; width:100%; max-width:400px; border-radius:20px; padding:25px; position:relative; text-align:center; }
+        .modal-window input { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; font-size:14px; }
+        
+        /* Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; height: 70px; border-top: 1px solid #ddd; z-index: 9999; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #777; font-size: 11px; font-weight: bold; text-decoration: none; }
+        .nav-item.active { color: var(--main); border-top: 3px solid var(--main); }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="logo">07 <span>BET</span></a>
+    <div id="auth-zone">
+        <div id="user-balance" class="balance-area">0.00 TRY</div>
+        <button id="btn-open-reg" class="btn-reg" onclick="window.ui_modal('modal-register', true)">KAYIT OL</button>
+    </div>
+</header>
+
+<div class="hero">
+    <h2 style="margin:0; color:var(--green)">HOŞ GELDİNİZ!</h2>
+    <p style="font-size:12px; opacity:0.8; margin-top:5px;">Gerçek bilgilerle kayıt ol, 100 TL deneme bonusunu kap.</p>
+</div>
+
 <div id="modal-register" class="modal-overlay">
-    <div class="modal-window" style="max-height: 90vh; overflow-y: auto; margin-top: 20px;">
-        <h2 style="color:var(--main)">07 BET Kayıt Formu</h2>
+    <div class="modal-window" style="max-height: 85vh; overflow-y: auto;">
+        <h3 style="color:var(--main); margin-bottom:15px;">Yeni Üyelik Formu</h3>
         <input type="text" id="reg-name" placeholder="Adınız">
         <input type="text" id="reg-surname" placeholder="Soyadınız">
-        <input type="number" id="reg-tc" placeholder="TC Kimlik No">
+        <input type="number" id="reg-tc" placeholder="TC Kimlik No (11 Hane)">
         <input type="date" id="reg-birth" placeholder="Doğum Tarihi">
-        <input type="tel" id="reg-phone" placeholder="Telefon Numaranız">
+        <input type="tel" id="reg-phone" placeholder="Telefon (05xx)">
         <input type="password" id="reg-pass" placeholder="Şifreniz">
         
-        <div style="font-size: 11px; text-align: left; margin: 10px 0; color: #666;">
-            <input type="checkbox" id="reg-contract" style="width: auto;"> 
-            <label for="reg-contract">18 yaşından büyüğüm ve kullanıcı sözleşmesini okudum, onaylıyorum.</label>
+        <div style="font-size: 11px; text-align: left; margin: 10px 0; color: #666; display: flex; align-items: center; gap: 5px;">
+            <input type="checkbox" id="reg-check" style="width: auto; margin: 0;"> 
+            <span>Kullanım şartlarını kabul ediyorum.</span>
         </div>
 
-        <button class="btn-action" style="width:100%; padding:15px;" onclick="window.process_full_register()">KAYIT OL</button>
-        <p onclick="window.ui_modal_toggle('modal-register', false)" style="margin-top:15px; cursor:pointer; color:#999;">İptal</p>
+        <button class="btn-reg" style="width:100%; padding:15px; font-size:16px;" onclick="window.process_register()">KAYDI TAMAMLA</button>
+        <p onclick="window.ui_modal('modal-register', false)" style="margin-top:15px; cursor:pointer; color:#999; font-size:13px;">Kapat</p>
     </div>
 </div>
+
+<div class="section-title">⚽ CANLI FUTBOL BÜLTENİ</div>
+<div id="match-container"></div>
+
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">🏆<br>Spor</a>
+    <a href="slot.html" class="nav-item">🎰<br>Slot</a>
+    <a href="deposit.html" class="nav-item">💳<br>Yatır</a>
+    <a href="bonus.html" class="nav-item">🎁<br>Bonus</a>
+    <a href="profile.html" class="nav-item">👤<br>Profil</a>
+</nav>
 
 <script type="module">
     import { db, ref, set, push, onValue, get } from "./firebase-handler.js";
 
-    // MODAL AÇMA/KAPAMA
-    window.ui_modal_toggle = (id, state) => {
-        document.getElementById(id).style.display = state ? 'flex' : 'none';
-    };
+    // MODAL KONTROL
+    window.ui_modal = (id, show) => { document.getElementById(id).style.display = show ? 'flex' : 'none'; };
 
-    // PROFESYONEL KAYIT FONKSİYONU
-    window.process_full_register = async () => {
-        const name = document.getElementById('reg-name').value;
-        const surname = document.getElementById('reg-surname').value;
-        const tc = document.getElementById('reg-tc').value;
-        const birth = document.getElementById('reg-birth').value;
-        const phone = document.getElementById('reg-phone').value;
-        const pass = document.getElementById('reg-pass').value;
-        const contract = document.getElementById('reg-contract').checked;
-
-        // Geçerlilik Kontrolleri
-        if(!name || !surname || !tc || !birth || !phone || !pass) {
-            return alert("Lütfen tüm alanları doldurunuz!");
-        }
-        if(!contract) {
-            return alert("Lütfen kullanıcı sözleşmesini onaylayın.");
-        }
-        if(tc.length !== 11) {
-            return alert("Geçerli bir TC Kimlik numarası giriniz.");
-        }
-
-        // Kullanıcıya özel rastgele bir ID oluştur (Örn: 07-44231)
-        const customUserId = "07-" + Math.floor(10000 + Math.random() * 90000);
-
+    // TAM KAPSAMLI KAYIT MOTORU
+    window.process_register = async () => {
+        const d = (id) => document.getElementById(id).value;
         const newUser = {
-            userId: customUserId,
-            name: name,
-            surname: surname,
-            tcNo: tc,
-            birthDate: birth,
-            phone: phone,
-            password: pass,
-            balance: 100, // Hoşgeldin Bonusu
-            status: "Aktif",
-            regDate: new Date().toLocaleString('tr-TR')
+            name: d('reg-name'), surname: d('reg-surname'), tc: d('reg-tc'),
+            birth: d('reg-birth'), phone: d('reg-phone'), pass: d('reg-pass'),
+            check: document.getElementById('reg-check').checked
         };
 
+        if(!newUser.name || !newUser.tc || !newUser.pass) return alert("Lütfen zorunlu alanları doldurun!");
+        if(newUser.tc.length !== 11) return alert("TC No 11 hane olmalıdır!");
+        if(!newUser.check) return alert("Şartları kabul etmelisiniz!");
+
+        const userId = "07-" + Math.floor(10000 + Math.random() * 90000);
+        
         try {
             const uRef = push(ref(db, 'kayitlar'));
-            await set(uRef, newUser);
-            
-            // Oturumu Aç
-            localStorage.setItem('currentUser', JSON.stringify({ 
-                userId: customUserId, 
-                firebaseKey: uRef.key,
-                fullName: name + " " + surname 
-            }));
+            await set(uRef, {
+                userId: userId,
+                ...newUser,
+                balance: 100,
+                status: "Aktif",
+                date: new Date().toLocaleString('tr-TR')
+            });
 
-            alert("KAYIT BAŞARILI!\nKullanıcı Numaranız: " + customUserId + "\nLütfen bu numarayı not edin.");
+            localStorage.setItem('currentUser', JSON.stringify({ userId: userId, firebaseKey: uRef.key }));
+            alert("Kayıt Başarılı! Kullanıcı Numaranız: " + userId);
             location.reload();
-        } catch (error) {
-            alert("Hata oluştu: " + error.message);
-        }
+        } catch (e) { alert("Hata: " + e.message); }
     };
-    
-    // Mevcut buton işlevini güncelle
-    window.core_reg = () => window.ui_modal_toggle('modal-register', true);
+
+    // MAÇLARI YÜKLE
+    const matches = [
+        { h: "Galatasaray", hL: "https://upload.wikimedia.org/wikipedia/commons/3/37/Galatasaray_Star_Logo.png", a: "Fenerbahçe", aL: "https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png", s: "2-1", t: "72'", o: [2.10, 3.20, 2.80] },
+        { h: "Real Madrid", hL: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", a: "Man City", aL: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg", s: "1-1", t: "45'", o: [2.40, 3.40, 2.10] },
+        { h: "Liverpool", hL: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", a: "Arsenal", aL: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg", s: "0-0", t: "15'", o: [1.95, 3.50, 3.60] }
+    ];
+
+    document.getElementById('match-container').innerHTML = matches.map(m => `
+        <div class="match-card">
+            <div class="match-top"><span>🏆 SÜPER LİG</span> <b style="color:var(--red)">● CANLI ${m.t}</b></div>
+            <div class="match-main">
+                <div class="team"><img src="${m.hL}"><b>${m.h}</b></div>
+                <div class="score">${m.s}</div>
+                <div class="team"><img src="${m.aL}"><b>${m.a}</b></div>
+            </div>
+            <div class="odds-grid">
+                <div class="odd-box" onclick="window.place_bet('${m.h}-${m.a}','MS 1',${m.o[0]})"><span>1</span><b>${m.o[0]}</b></div>
+                <div class="odd-box" onclick="window.place_bet('${m.h}-${m.a}','MS X',${m.o[1]})"><span>X</span><b>${m.o[1]}</b></div>
+                <div class="odd-box" onclick="window.place_bet('${m.h}-${m.a}','MS 2',${m.o[2]})"><span>2</span><b>${m.o[2]}</b></div>
+            </div>
+        </div>
+    `).join('');
+
+    // BAHİS ALMA
+    window.place_bet = async (match, pick, rate) => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if(!user) return window.ui_modal('modal-register', true);
+        
+        const stake = prompt(match + " - " + pick + "\nBahis Tutarı girin:", "100");
+        if(!stake || stake < 10) return;
+
+        const bRef = ref(db, 'kayitlar/' + user.firebaseKey + '/balance');
+        const snap = await get(bRef);
+        if(snap.val() < stake) return alert("Bakiye Yetersiz!");
+
+        await set(bRef, snap.val() - parseFloat(stake));
+        await push(ref(db, 'aktifKuponlar'), { userId: user.userId, match, pick, rate, stake, status: "Beklemede", date: new Date().toLocaleString() });
+        alert("Bahis başarıyla alındı!");
+    };
+
+    // OTURUM KONTROL
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if(user) {
+        document.getElementById('btn-open-reg').style.display = 'none';
+        const balEl = document.getElementById('user-balance');
+        balEl.style.display = 'block';
+        onValue(ref(db, 'kayitlar/' + user.firebaseKey + '/balance'), (s) => {
+            balEl.innerText = s.val().toLocaleString() + " TRY";
+        });
+    }
 </script>
+</body>
+</html>
