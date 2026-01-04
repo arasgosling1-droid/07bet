@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>07 BET | Canlı Bahis ve Slot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --main: #1e3a5a; --dark: #0f2235; --green: #85b527; --gray: #f4f7f9; --white: #fff; --red: #e74c3c; }
+        body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--gray); padding-bottom: 80px; }
+        
+        header { 
+            background: linear-gradient(135deg, var(--main) 0%, var(--dark) 100%); 
+            height: 65px; display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 15px; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .logo { font-weight: 900; font-size: 26px; color: var(--white); font-style: italic; }
+        .logo span { color: var(--green); }
+        .balance-area { background: rgba(0,0,0,0.5); color: var(--green); padding: 8px 15px; border-radius: 30px; font-weight: 900; display: none; border: 1px solid var(--green); }
+
+        /* Spor Bülteni Tasarımı */
+        .section-title { padding: 15px; font-weight: 900; color: var(--main); font-size: 16px; border-left: 5px solid var(--green); margin: 10px 0; }
+        .match-card { background: var(--white); margin: 0 12px 12px; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .match-top { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 10px; }
+        .match-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .team { display: flex; flex-direction: column; align-items: center; width: 40%; text-align: center; }
+        .team img { width: 40px; height: 40px; margin-bottom: 5px; }
+        .team b { font-size: 14px; color: var(--dark); }
+        .score { font-size: 22px; font-weight: 900; color: var(--red); }
+
+        .odds-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .odd-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 8px; padding: 10px 5px; text-align: center; cursor: pointer; }
+        .odd-box span { display: block; font-size: 10px; color: #999; }
+        .odd-box b { color: var(--green); font-size: 15px; }
+
+        /* Alt Navigasyon */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; height: 70px; border-top: 1px solid #ddd; z-index: 9999; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #777; font-size: 11px; font-weight: bold; text-decoration: none; }
+        .nav-item.active { color: var(--main); border-top: 3px solid var(--main); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">07 <span>BET</span></div>
+    <div id="auth-zone">
+        <div id="main-balance" class="balance-area">0.00 TRY</div>
+        <button id="reg-btn" style="background:var(--green); color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;" onclick="window.core_reg()">ÜYE OL</button>
+    </div>
+</header>
+
+<div class="section-title">⚽ CANLI BAHİS (TÜM MARKETLER)</div>
+<div id="match-list"></div>
+
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">🏆<br>Spor</a>
+    <a href="slot.html" class="nav-item">🎰<br>Slot</a>
+    <a href="deposit.html" class="nav-item">💳<br>Yatır</a>
+    <a href="withdraw.html" class="nav-item">💸<br>Çek</a>
+    <a href="profile.html" class="nav-item">👤<br>Profil</a>
+</nav>
+
+<script type="module">
+    import { db, ref, set, push, onValue, get } from "./firebase-handler.js";
+
+    // --- MAÇ LİSTESİ VE LOGOLAR ---
+    const matches = [
+        { h: "Galatasaray", hL: "https://upload.wikimedia.org/wikipedia/commons/3/37/Galatasaray_Star_Logo.png", a: "Fenerbahçe", aL: "https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png", s: "2-1", t: "65'", o: [2.10, 3.40, 2.80] },
+        { h: "Real Madrid", hL: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", a: "Barcelona", aL: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_logo.svg", s: "0-0", t: "12'", o: [1.90, 3.50, 3.20] }
+    ];
+
+    window.render = () => {
+        document.getElementById('match-list').innerHTML = matches.map(m => `
+            <div class="match-card">
+                <div class="match-top"><span>🌍 CANLI YAYIN</span> <b style="color:red">● ${m.t}</b></div>
+                <div class="match-main">
+                    <div class="team"><img src="${m.hL}"><b>${m.h}</b></div>
+                    <div class="score">${m.s}</div>
+                    <div class="team"><img src="${m.aL}"><b>${m.a}</b></div>
+                </div>
+                <div class="odds-grid">
+                    <div class="odd-box" onclick="window.core_bet('${m.h}-${m.a}','MS 1',${m.o[0]})"><span>1</span><b>${m.o[0]}</b></div>
+                    <div class="odd-box" onclick="window.core_bet('${m.h}-${m.a}','MS X',${m.o[1]})"><span>X</span><b>${m.o[1]}</b></div>
+                    <div class="odd-box" onclick="window.core_bet('${m.h}-${m.a}','MS 2',${m.o[2]})"><span>2</span><b>${m.o[2]}</b></div>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    window.core_reg = async () => {
+        const id = "07-" + Math.floor(Math.random()*900000);
+        const pw = "vip" + Math.floor(Math.random()*999);
+        const uRef = push(ref(db, 'kayitlar'));
+        await set(uRef, { userId: id, password: pw, balance: 100, status: "Aktif" });
+        localStorage.setItem('currentUser', JSON.stringify({ userId: id, firebaseKey: uRef.key }));
+        alert("ÜYELİK BAŞARILI!\nID: "+id+"\nŞifre: "+pw);
+        location.reload();
+    };
+
+    window.core_bet = async (match, pick, rate) => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if(!user) return alert("Lütfen önce üye olun!");
+        const amt = prompt(match + " / " + pick + "\nBahis Tutarı:", "100");
+        if(!amt || amt < 10) return;
+        const bRef = ref(db, 'kayitlar/' + user.firebaseKey + '/balance');
+        const snap = await get(bRef);
+        if(snap.val() < amt) return alert("Yetersiz Bakiye!");
+        await set(bRef, snap.val() - parseFloat(amt));
+        await push(ref(db, 'aktifKuponlar'), { userId: user.userId, match, pick, rate, stake: amt, status: "Beklemede" });
+        alert("Bahis Alındı!");
+    };
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if(user) {
+        document.getElementById('reg-btn').style.display = 'none';
+        document.getElementById('main-balance').style.display = 'block';
+        onValue(ref(db, 'kayitlar/' + user.firebaseKey + '/balance'), (s) => {
+            document.getElementById('main-balance').innerText = s.val().toLocaleString() + " TRY";
+        });
+    }
+    window.render();
+</script>
+</body>
+</html>
