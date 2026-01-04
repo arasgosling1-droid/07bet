@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>07 BET | Admin Kontrol Paneli</title>
+    <style>
+        :root { --admin-blue: #0f2235; --admin-green: #85b527; --admin-red: #e74c3c; }
+        body { font-family: 'Roboto', sans-serif; background: #f0f2f5; margin: 0; display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--admin-blue); color: white; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .sidebar h2 { color: var(--admin-green); font-size: 22px; margin-bottom: 30px; border-bottom: 1px solid #ffffff22; padding-bottom: 10px; }
+        .nav-link { display: block; color: #ccc; text-decoration: none; padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: #ffffff11; color: white; }
+
+        /* Main Content */
+        .content { flex: 1; padding: 30px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; background: #f8f9fa; padding: 12px; color: #555; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+
+        .btn { border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn-approve { background: var(--admin-green); color: white; }
+        .btn-reject { background: var(--admin-red); color: white; margin-left: 5px; }
+        
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-done { background: #d4edda; color: #155724; }
+
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>07 BET ADMIN</h2>
+    <div class="nav-link active" onclick="showSection('sec-deposits')">💳 Yatırım Talepleri</div>
+    <div class="nav-link" onclick="showSection('sec-withdraws')">💸 Çekim Talepleri</div>
+    <div class="nav-link" onclick="showSection('sec-users')">👥 Kullanıcı Yönetimi</div>
+    <div class="nav-link" onclick="showSection('sec-bets')">🎟️ Aktif Kuponlar</div>
+    <div class="nav-link" onclick="location.href='index.html'" style="margin-top: 50px; color: var(--admin-red);">🔙 Siteye Dön</div>
+</div>
+
+<div class="content">
+    
+    <div id="sec-deposits" class="section">
+        <div class="header"><h1>Yatırım Bildirimleri (Havale)</h1></div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kullanıcı ID</th>
+                        <th>Ad Soyad</th>
+                        <th>Miktar</th>
+                        <th>Tarih</th>
+                        <th>Durum</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="list-deposits"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="sec-withdraws" class="section" style="display:none;">
+        <div class="header"><h1>Para Çekme Talepleri</h1></div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kullanıcı ID</th>
+                        <th>Ad Soyad</th>
+                        <th>IBAN</th>
+                        <th>Miktar</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="list-withdraws"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="sec-users" class="section" style="display:none;">
+        <div class="header"><h1>Tüm Üyeler</h1></div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Şifre</th>
+                        <th>Bakiye (TL)</th>
+                        <th>Durum</th>
+                        <th>Bakiye Düzenle</th>
+                    </tr>
+                </thead>
+                <tbody id="list-users"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    import { db, ref, onValue, set, get, remove } from "./firebase-handler.js";
+
+    // --- SECTION GEÇİŞLERİ ---
+    window.showSection = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        event.target.classList.add('active');
+    };
+
+    // --- YATIRIMLARI DİNLE VE ONAYLA ---
+    onValue(ref(db, 'odemeBildirimleri'), (snapshot) => {
+        const tbody = document.getElementById('list-deposits');
+        tbody.innerHTML = "";
+        snapshot.forEach((child) => {
+            const data = child.val();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${data.userId}</td>
+                    <td>${data.adSoyad}</td>
+                    <td><b>${data.miktar} TL</b></td>
+                    <td>${data.tarih}</td>
+                    <td><span class="status-badge status-pending">${data.durum}</span></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="approveDeposit('${child.key}', '${data.userFirebaseKey}', ${data.miktar})">Onayla</button>
+                        <button class="btn btn-reject" onclick="deleteEntry('odemeBildirimleri', '${child.key}')">Sil</button>
+                    </td>
+                </tr>`;
+        });
+    });
+
+    window.approveDeposit = async (key, userKey, amount) => {
+        const userBalRef = ref(db, `kayitlar/${userKey}/balance`);
+        const currentBal = (await get(userBalRef)).val();
+        await set(userBalRef, currentBal + amount);
+        await remove(ref(db, `odemeBildirimleri/${key}`));
+        alert("Bakiye yüklendi ve bildirim temizlendi!");
+    };
+
+    // --- ÇEKİMLERİ LİSTELE ---
+    onValue(ref(db, 'cekimTalepleri'), (snapshot) => {
+        const tbody = document.getElementById('list-withdraws');
+        tbody.innerHTML = "";
+        snapshot.forEach((child) => {
+            const data = child.val();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${data.userId}</td>
+                    <td>${data.adSoyad}</td>
+                    <td>${data.iban}</td>
+                    <td><b>${data.miktar} TL</b></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="deleteEntry('cekimTalepleri', '${child.key}')">Ödendi İşaretle</button>
+                    </td>
+                </tr>`;
+        });
+    });
+
+    // --- KULLANICI LİSTESİ VE MANUEL BAKİYE ---
+    onValue(ref(db, 'kayitlar'), (snapshot) => {
+        const tbody = document.getElementById('list-users');
+        tbody.innerHTML = "";
+        snapshot.forEach((child) => {
+            const data = child.val();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${data.userId}</td>
+                    <td>${data.password}</td>
+                    <td><b id="bal-${child.key}">${data.balance} TL</b></td>
+                    <td>${data.status}</td>
+                    <td>
+                        <input type="number" id="inp-${child.key}" placeholder="Miktar" style="width:60px;">
+                        <button class="btn btn-approve" onclick="updateManualBalance('${child.key}')">Ekle/Çıkar</button>
+                    </td>
+                </tr>`;
+        });
+    });
+
+    window.updateManualBalance = async (userKey) => {
+        const input = document.getElementById(`inp-${userKey}`);
+        const amount = parseFloat(input.value);
+        if(!amount) return;
+        const balRef = ref(db, `kayitlar/${userKey}/balance`);
+        const current = (await get(balRef)).val();
+        await set(balRef, current + amount);
+        input.value = "";
+        alert("Bakiye güncellendi!");
+    };
+
+    window.deleteEntry = async (path, key) => {
+        if(confirm("Silmek istediğinize emin misiniz?")) {
+            await remove(ref(db, `${path}/${key}`));
+        }
+    };
+
+</script>
+</body>
+</html>
